@@ -7,5 +7,6 @@ router.post('/', upload.single('image'), createProduct);        // POST /api/pro
 
 
 router.get('/', getAllProducts);         // GET /api/products
-router.get('/:slug', getProductBySlug)    // GET/api/products/:slug 
+router.get('/slug/:slug', getProductBySlug); // ✅ use /slug/:slug instead of /:slug
+    // GET/api/products/:slug 
 module.exports = router;
