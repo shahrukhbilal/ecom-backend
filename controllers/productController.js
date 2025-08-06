@@ -100,25 +100,33 @@ if (category) {
 // =========================================
 const getProductBySlug = async (req, res) => {
   try {
-    // Find product where slug matches URL param, also populate category name + slug
+    console.log('🔍 Requested slug:', req.params.slug);
+
+    // Double check if slug exists in DB
     const product = await Product.findOne({ slug: req.params.slug }).populate(
       'category',
       'name slug'
     );
 
-    // ❌ If not found, return 404
     if (!product) {
+      console.warn('⚠️ No product found with slug:', req.params.slug);
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // ✅ Return the found product
+    console.log('✅ Product found:', {
+      title: product.title,
+      slug: product.slug,
+      category: product.category,
+    });
+
     res.status(200).json(product);
   } catch (error) {
-    // ❌ Catch error
-    console.error('❌ Error fetching product by slug:', error);
-    res.status(500).json({ message: 'Failed to fetch product' });
+    console.error('❌ Error fetching product by slug:', error.message);
+    console.error('📛 Full Error Stack:', error.stack);
+    res.status(500).json({ message: 'Failed to fetch product', error: error.message });
   }
 };
+
 
 // =========================================
 // EXPORT CONTROLLERS
