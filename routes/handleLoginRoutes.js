@@ -6,9 +6,12 @@ const jwt = require('jsonwebtoken');
 // ===============================
 // @route   POST /api/auth/register
 // ===============================
+// ===============================
+// @route   POST /api/auth/register
+// ===============================
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, secretKey } = req.body;
 
     // Validate input
     if (!name || !email || !password) {
@@ -21,12 +24,19 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
+    // If user is trying to register as admin, validate secret key
+    if (role === 'admin') {
+      if (!secretKey || secretKey !== process.env.ADMIN_SECRET_KEY) {
+        return res.status(401).json({ message: 'Invalid or missing admin secret key' });
+      }
+    }
+
     // Create new user
     const user = await User.create({
       name,
       email,
       password,
-      role: role || 'user', // default role is 'user'
+      role: role || 'user',
     });
 
     // Create JWT
@@ -53,6 +63,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Registration failed', error: error.message });
   }
 });
+
 
 // ===============================
 // @route   POST /api/auth/login
