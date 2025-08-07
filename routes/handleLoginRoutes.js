@@ -25,10 +25,12 @@ router.post('/register', async (req, res) => {
     }
 
     // If user is trying to register as admin, validate secret key
+    let isAdmin = false;
     if (role === 'admin') {
       if (!secretKey || secretKey !== process.env.ADMIN_SECRET_KEY) {
         return res.status(401).json({ message: 'Invalid or missing admin secret key' });
       }
+      isAdmin = true;
     }
 
     // Create new user
@@ -36,7 +38,7 @@ router.post('/register', async (req, res) => {
       name,
       email,
       password,
-      role: role || 'user',
+      isAdmin,
     });
 
     // Create JWT
@@ -44,7 +46,7 @@ router.post('/register', async (req, res) => {
       {
         userId: user._id,
         email: user.email,
-        isAdmin: user.role === 'admin',
+        isAdmin: user.isAdmin, // ✅ use correct field
       },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
@@ -56,13 +58,14 @@ router.post('/register', async (req, res) => {
       user: {
         name: user.name,
         email: user.email,
-        isAdmin: true,
+        isAdmin: user.isAdmin, // ✅ send actual value
       },
     });
   } catch (error) {
     res.status(500).json({ message: 'Registration failed', error: error.message });
   }
 });
+
 
 
 // ===============================
