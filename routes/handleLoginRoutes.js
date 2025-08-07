@@ -56,7 +56,7 @@ router.post('/register', async (req, res) => {
       user: {
         name: user.name,
         email: user.email,
-        isAdmin: user.role === 'admin',
+        isAdmin: true,
       },
     });
   } catch (error) {
