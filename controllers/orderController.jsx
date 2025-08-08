@@ -14,19 +14,17 @@ const getMyOrders = async (req, res) => {
 // ✅ Create a new order linked to the logged-in user
 const createOrder = async (req, res) => {
   try {
-    const {
-      fullName, email, phone,
-      address, city, zip,
-      paymentMethod, items, total
-    } = req.body;
+    const { cartItems, shippingInfo, paymentMethod, total, paymentStatus, paymentId } = req.body;
 
     console.log("✅ Incoming Order Data:", req.body);
 
     const newOrder = await Order.create({
-      user: req.user._id, // ✅ Attach logged-in user ID
-      fullName, email, phone,
-      address, city, zip,
-      paymentMethod, items, total
+      user: req.user._id,
+      cartItems,
+      shippingInfo,
+      paymentMethod,
+      paymentStatus,
+      total
     });
 
     res.status(201).json({ message: 'Order created', order: newOrder });
@@ -35,6 +33,7 @@ const createOrder = async (req, res) => {
     res.status(500).json({ message: 'Failed to create order' });
   }
 };
+
 
 // ✅ Export both handlers
 module.exports = {
