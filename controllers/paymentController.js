@@ -4,43 +4,32 @@ const Payment = require('../models/paymentModel');
 const saveOrderAndPayment = async (req, res) => {
   try {
     const {
-      userId,
-      fullName,
-      email,
-      phone,
-      address,
-      city,
-      zip,
-      items,
+      cartItems,
+      shippingInfo, // { name, email, phone, address }
       total,
       paymentMethod,
-      paymentIntentId, // From Stripe
       paymentStatus,
+      paymentId // Stripe paymentIntentId
     } = req.body;
 
-    // Save the Order
+    // ✅ Save Order in correct schema format
     const newOrder = await Order.create({
-      user: userId,
-      fullName,
-      email,
-      phone,
-      address,
-      city,
-      zip,
-      items,
+      user: req.user.userId, // From verifyToken middleware
+      cartItems,
+      shippingInfo,
       total,
       paymentMethod,
-      status: 'paid',
+      paymentStatus
     });
 
-    // Save Payment
+    // ✅ Save Payment separately
     await Payment.create({
       order: newOrder._id,
-      user: userId,
+      user: req.user.userId,
       amount: total,
       status: paymentStatus,
-      transactionId: paymentIntentId,
-      paymentMethod,
+      transactionId: paymentId,
+      paymentMethod
     });
 
     res.status(201).json({ message: 'Order and payment saved!', orderId: newOrder._id });
