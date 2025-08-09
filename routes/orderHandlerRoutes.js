@@ -31,43 +31,43 @@ router.get('/admin-orders',verifyToken, isAdmin, async (req, res) => {
 });
 
 // 🛒 Create an order (authenticated)
+// 🛒 Create an order (authenticated)
 router.post("/", verifyToken, async (req, res) => {
   try {
-    console.log("📦 Incoming Order Body:", req.body); // Debugging log
+    console.log("📦 Incoming Order Body:", req.body);
 
     const { cartItems, shippingInfo, paymentMethod, total, paymentStatus } = req.body;
 
-    // ✅ Map items properly with productId
-    const items = cartItems.map(item => ({
-      productId: item.productId || item._id, // fallback to _id if productId missing
-      name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-    }));
-
     // ✅ Validate required fields
     if (
-      !shippingInfo?.fullName ||
+      !shippingInfo?.name ||
       !shippingInfo?.email ||
       !shippingInfo?.phone ||
       !shippingInfo?.address ||
       !paymentMethod ||
-      !items.length
+      !cartItems.length
     ) {
       return res.status(400).json({ message: "All required fields must be provided" });
     }
 
-    // ✅ Create new order
+    // ✅ Create new order matching model schema
     const createdOrder = await Order.create({
-      user: req.user._id, // from verifyToken
-      fullName: shippingInfo.fullName,
-      email: shippingInfo.email,
-      phone: shippingInfo.phone,
-      address: shippingInfo.address,
+      user: req.user._id,
+      cartItems: cartItems.map(item => ({
+        productId: item.productId || item._id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      shippingInfo: {
+        name: shippingInfo.name,
+        email: shippingInfo.email,
+        phone: shippingInfo.phone,
+        address: shippingInfo.address,
+      },
+      total,
       paymentMethod,
       paymentStatus,
-      items,
-      total,
     });
 
     console.log("✅ Order Saved:", createdOrder);
@@ -81,5 +81,6 @@ router.post("/", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Server error. Could not save order." });
   }
 });
+
 
 module.exports = router;
