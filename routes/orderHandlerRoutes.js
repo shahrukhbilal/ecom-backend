@@ -31,61 +31,54 @@ router.get('/admin-orders',verifyToken, isAdmin, async (req, res) => {
 });
 
 // 🛒 Create an order (authenticated)
-router.post('/', verifyToken, async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   try {
-    const {
-      fullName, email, phone,
-      address, city, zip,
-      paymentMethod, items, total
-    } = req.body;
+    console.log("📦 Incoming Order Body:", req.body); // Debugging log
 
-    if (
-      !fullName || !email || !phone ||
-      !address || !city || !zip ||
-      !paymentMethod ||
-      !Array.isArray(items) || items.length === 0 ||
-      total == null
-    ) {
-      return res.status(400).json({ message: 'Missing required order or address details.' });
-    }
+    const { cartItems, shippingInfo, paymentMethod, total, paymentStatus } = req.body;
 
-    for (const item of items) {
-      if (
-        !item.productId ||
-        !isValidObjectId(item.productId) ||
-        typeof item.name !== 'string' ||
-        typeof item.quantity !== 'number' ||
-        typeof item.price !== 'number'
-      ) {
-        return res.status(400).json({ message: `Invalid item detected: ${JSON.stringify(item)}` });
-      }
-    }
-
-    const formattedItems = items.map(item => ({
-      productId: new mongoose.Types.ObjectId(item.productId),
+    // ✅ Map items properly with productId
+    const items = cartItems.map(item => ({
+      productId: item.productId || item._id, // fallback to _id if productId missing
       name: item.name,
       quantity: item.quantity,
-      price: item.price
+      price: item.price,
     }));
 
-    const newOrder = new Order({
-      user: req.user.id, // 🔐 Link order to user
-      fullName,
-      email,
-      phone,
-      address,
-      city,
-      zip,
+    // ✅ Validate required fields
+    if (
+      !shippingInfo?.fullName ||
+      !shippingInfo?.email ||
+      !shippingInfo?.phone ||
+      !shippingInfo?.address ||
+      !paymentMethod ||
+      !items.length
+    ) {
+      return res.status(400).json({ message: "All required fields must be provided" });
+    }
+
+    // ✅ Create new order
+    const createdOrder = await Order.create({
+      user: req.user._id, // from verifyToken
+      fullName: shippingInfo.fullName,
+      email: shippingInfo.email,
+      phone: shippingInfo.phone,
+      address: shippingInfo.address,
       paymentMethod,
-      items: formattedItems,
-      total
+      paymentStatus,
+      items,
+      total,
     });
 
-    const savedOrder = await newOrder.save();
-    res.status(201).json({ message: 'Order placed successfully!', order: savedOrder });
+    console.log("✅ Order Saved:", createdOrder);
+
+    res.status(201).json({
+      message: "Order placed successfully",
+      order: createdOrder,
+    });
   } catch (error) {
-    console.error('Error saving order:', error);
-    res.status(500).json({ message: 'Server error – could not save order.' });
+    console.error("❌ Error saving order:", error);
+    res.status(500).json({ message: "Server error. Could not save order." });
   }
 });
 
