@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
 // 🔐 Middleware to verify JWT token
+// 🔐 Middleware to verify JWT token
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -27,8 +28,8 @@ const verifyToken = async (req, res, next) => {
     // ✅ Attach user to request
     req.user = user;
 
-    // ✅ If user is admin, attach to req.admin too
-    if (user.role === 'admin') {
+    // ✅ Agar admin hai to req.admin me attach karo
+    if (user.isAdmin) {
       req.admin = {
         name: user.name,
         email: user.email,
@@ -44,7 +45,7 @@ const verifyToken = async (req, res, next) => {
 
 // 🔐 Middleware to check if user is admin
 const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && req.user.isAdmin) { // 🔹 yahan bhi isAdmin use karna hai
     next();
   } else {
     res.status(403).json({ message: 'Access denied: Admins only' });
