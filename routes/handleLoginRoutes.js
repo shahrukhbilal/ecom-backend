@@ -3,9 +3,19 @@ const router = express.Router();
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
-// ===============================
-// @route   POST /api/auth/register
-// ===============================
+// Helper function to create JWT
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      userId: user._id,
+      email: user.email,
+      isAdmin: user.isAdmin, // consistent boolean
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
+};
+
 // ===============================
 // @route   POST /api/auth/register
 // ===============================
@@ -13,18 +23,18 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, secretKey } = req.body;
 
-    // Validate input
+    // Validate required fields
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email, and password are required' });
     }
 
-    // Check if user already exists
+    // Check if email already exists
     const exists = await User.findOne({ email });
     if (exists) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    // If user is trying to register as admin, validate secret key
+    // Handle admin registration
     let isAdmin = false;
     if (role === 'admin') {
       if (!secretKey || secretKey !== process.env.ADMIN_SECRET_KEY) {
@@ -33,7 +43,7 @@ router.post('/register', async (req, res) => {
       isAdmin = true;
     }
 
-    // Create new user
+    // Create user
     const user = await User.create({
       name,
       email,
@@ -41,32 +51,22 @@ router.post('/register', async (req, res) => {
       isAdmin,
     });
 
-    // Create JWT
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        email: user.email,
-        isAdmin: user.isAdmin, // ✅ use correct field
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    // Generate token
+    const token = generateToken(user);
 
-    // Response
+    // Send response
     res.status(201).json({
       token,
       user: {
         name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin, // ✅ send actual value
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
     res.status(500).json({ message: 'Registration failed', error: error.message });
   }
 });
-
-
 
 // ===============================
 // @route   POST /api/auth/login
@@ -75,30 +75,22 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check user
+    // Find user
     const u = await User.findOne({ email });
     if (!u || !(await u.compare(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Create JWT
-    const token = jwt.sign(
-      {
-        userId: u._id,
-        email: u.email,
-        isAdmin: u.role === 'admin',
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    // Generate token
+    const token = generateToken(u);
 
-    // Response
+    // Send response
     res.json({
       token,
       user: {
         name: u.name,
         email: u.email,
-        isAdmin: u.role === 'admin',
+        isAdmin: u.isAdmin, // direct boolean
       },
     });
   } catch (error) {
