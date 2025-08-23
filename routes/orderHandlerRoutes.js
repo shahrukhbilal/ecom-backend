@@ -15,8 +15,6 @@ router.get('/my-orders', verifyToken, async (req, res) => {
   const orders = await Order.find({ user: req.user._id });
   res.json(orders);
 });
-
-
 // 🛡️ 📦 Fetch all orders (for admin/testing use only)
 router.get('/admin-orders',verifyToken, isAdmin, async (req, res) => {
   try {
@@ -29,7 +27,6 @@ router.get('/admin-orders',verifyToken, isAdmin, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch admin orders' });
   }
 });
-
 // 🛒 Create an order (authenticated)
 // 🛒 Create an order (authenticated)
 router.post("/", verifyToken, async (req, res) => {
@@ -49,7 +46,6 @@ router.post("/", verifyToken, async (req, res) => {
     ) {
       return res.status(400).json({ message: "All required fields must be provided" });
     }
-
     // ✅ Create new order matching model schema
     const createdOrder = await Order.create({
       user: req.user._id,
