@@ -103,8 +103,7 @@ const getProductBySlug = async (req, res) => {
     console.log('🔍 Requested slug:', req.params.slug);
 
     // Double check if slug exists in DB
-    const product = await Product.findOne({ slug: req.params.slug }).populate(
-      'category',
+    const product = await Product.findOne({ slug: req.params.slug}).populate( 'category',
       'name slug'
     );
 
@@ -127,12 +126,24 @@ const getProductBySlug = async (req, res) => {
   }
 };
 
+const searchProducts = async (req , res) =>{
+  try {
+    const { q } = req.query;
+    const products = await Product.find({
+      $or: [
+        {name : {$regex : q , $options:"i"}},
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+      ],
+    });
+    res.status(200).json(products);
+    
+  } catch (error) {
 
-// =========================================
-// EXPORT CONTROLLERS
-// =========================================
-module.exports = {
-  createProduct,
-  getAllProducts,
-  getProductBySlug,
+    console.error('❌ Error searching products:', error.message);
+    console.error('📛 Full Error Stack:', error.stack);
+    res.status(500).json({ message: 'Failed to search products', error: error.message }); 
+  }
 };
+
+module.exports = { createProduct, getAllProducts, getProductBySlug, searchProducts };

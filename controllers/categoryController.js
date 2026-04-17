@@ -20,5 +20,14 @@ const createCategory = async (req, res) => {
     res.status(400).json({ message: 'Error creating category' });
   }
 };
+ const getCategoryBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const category = await Category.findOne({ slug });
+    res.status(200).json(category);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching category' });
+  }
+};
 
-module.exports = { getCategories, createCategory };
+module.exports = { getCategories, createCategory, getCategoryBySlug };

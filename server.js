@@ -42,7 +42,7 @@ app.use('/api/stripe-orders',stripeOrderRoutes);
 
 
 app.listen(PORT, (req, res)=>{
-    console.log('server is running ')
+    console.log('server is running on port ', PORT )
 })
 
 module.exports = app;
