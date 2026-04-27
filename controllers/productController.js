@@ -136,6 +136,7 @@ const searchProducts = async (req , res) =>{
         { description: { $regex: q, $options: 'i' } },
       ],
     });
+    console.log('search result', products)
     res.status(200).json(products);
     
   } catch (error) {
