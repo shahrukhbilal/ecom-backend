@@ -126,24 +126,33 @@ const getProductBySlug = async (req, res) => {
   }
 };
 
-const searchProducts = async (req , res) =>{
+const searchProducts = async (req, res) => {
   try {
     const { q } = req.query;
+    console.log("search query", q);
+
+    if (!q) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
     const products = await Product.find({
       $or: [
-        {name : {$regex : q , $options:"i"}},
-        { title: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-      ],
+        { title: { $regex: `\\b${q}`, $options: "i" } },
+        { slug: { $regex: `\\b${q}`, $options: "i" } },
+        { category: { $regex: `\\b${q}`, $options: "i" } }
+      ]
     });
-    console.log('search result', products)
-    res.status(200).json(products);
-    
-  } catch (error) {
 
-    console.error('❌ Error searching products:', error.message);
-    console.error('📛 Full Error Stack:', error.stack);
-    res.status(500).json({ message: 'Failed to search products', error: error.message }); 
+    console.log("search result from navbar", products);
+
+    res.status(200).json(products);
+
+  } catch (error) {
+    console.error("❌ Error searching products:", error.message);
+    res.status(500).json({
+      message: "Failed to search products",
+      error: error.message,
+    });
   }
 };
 

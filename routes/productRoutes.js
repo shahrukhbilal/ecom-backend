@@ -8,5 +8,6 @@ router.post('/', upload.single('image'), createProduct);        // POST /api/pro
 
 router.get('/', getAllProducts);         // GET /api/products
 router.get('/slug/:slug', getProductBySlug); // ✅ use /slug/:slug instead of /:slug
-router.get('/search', searchProducts);  // GET /api/products/search
+router.get('/search', searchProducts);      // GET /api/products/search?q=abc
+router.get('/search/:q', searchProducts);   // GET /api/products/search/abc
 module.exports = router;
