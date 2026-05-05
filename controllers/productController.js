@@ -134,12 +134,11 @@ const searchProducts = async (req, res) => {
     if (!q) {
       return res.status(400).json({ message: "Search query is required" });
     }
-
+    const searchRegex = new RegExp(q, "i");
     const products = await Product.find({
       $or: [
-        { title: { $regex: `\\b${q}`, $options: "i" } },
-        { slug: { $regex: `\\b${q}`, $options: "i" } },
-        { category: { $regex: `\\b${q}`, $options: "i" } }
+        { title: searchRegex },
+        { description: searchRegex }
       ]
     });
 
