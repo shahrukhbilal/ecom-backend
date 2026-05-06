@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
-console.log("🔥 HANDLE LOGIN ROUTES FILE LOADED");
+
 
 // Helper function to create JWT
 const generateToken = (user) => {

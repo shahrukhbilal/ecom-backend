@@ -1,10 +1,12 @@
 // Import the Product and FeaturedCategory models
 const Product = require('../models/productModel');
+const Category = require('../models/categoryModel');
 const FeaturedCategory = require('../models/featuredCategoryModel');
 
 // =========================================
 // 🔵 CREATE PRODUCT FUNCTION
 // =========================================
+
 const createProduct = async (req, res) => {
   try {
     // Destructure required fields from request body
@@ -43,10 +45,29 @@ const createProduct = async (req, res) => {
   }
 };
 
+ const getProductsByCategory = async (req, res) => {
+   try {
+    console.log("🔥 CATEGORY ROUTE HIT");
+    const { slug } = req.params;
+    const category = await Category.findOne({ slug });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    const products = await Product.find({ category: category._id });
+    res.status(200).json(products);
+    console.log("products", products);
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    res.status(400).json({ message: 'Failed to fetch products by category', error });
+  }
+}
+
 // =========================================
 // 🟠 GET ALL PRODUCTS WITH FILTERING
 // =========================================
 const getAllProducts = async (req, res) => {
+  console.log("🔥 ALL PRODUCTS ROUTE HIT");
+
   try {
     // Extract filters from query params (optional)
     const { category, min, max, sort } = req.query;
@@ -99,6 +120,7 @@ if (category) {
 // 🟢 GET SINGLE PRODUCT BY SLUG
 // =========================================
 const getProductBySlug = async (req, res) => {
+  console.log("🔥 GET PRODUCT BY SLUG ROUTE HIT");
   try {
     console.log('🔍 Requested slug:', req.params.slug);
 
@@ -138,7 +160,7 @@ const searchProducts = async (req, res) => {
     const products = await Product.find({
       $or: [
         { title: searchRegex },
-        { description: searchRegex }
+        { description: searchRegex },
       ]
     });
 
@@ -155,4 +177,4 @@ const searchProducts = async (req, res) => {
   }
 };
 
-module.exports = { createProduct, getAllProducts, getProductBySlug, searchProducts };
+module.exports = { createProduct, getAllProducts, getProductBySlug, searchProducts , getProductsByCategory};
