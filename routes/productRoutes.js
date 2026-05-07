@@ -4,8 +4,7 @@ const { createProduct, getAllProducts, getProductBySlug, searchProducts, getProd
 const upload = require('../middleware/upload');
 
 router.post('/', upload.single('image'), createProduct);        // POST /api/products
-
-
+router.get('/slug/:slug', getProductBySlug)
 router.get('/category/:slug', getProductsByCategory); // GET /api/products/category/electronics
 router.get('/', getAllProducts);         // GET /api/products
 router.get('/search', searchProducts);      // GET /api/products/search?q=abc
